@@ -34,6 +34,15 @@ export interface UserEntity {
   updatedAt: Date;
 }
 
+export interface RefreshTokenEntity {
+  id: string;
+  token: string;
+  userId: string;
+  expiresAt: Date;
+  isRevoked: boolean;
+  createdAt: Date;
+}
+
 export interface CampaignEntity {
   id: string;
   name: string;
@@ -71,4 +80,34 @@ export interface CreateLinkDTO {
   shortCode: string;
   campaignId?: string;
   userId: string;
+}
+
+// Auth DTOs
+export interface LoginDTO {
+  email: string;
+  password: string;
+}
+
+export interface RegisterDTO {
+  email: string;
+  name: string;
+  password: string;
+  passwordConfirm: string;
+}
+
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+}
+
+export interface TokenPayload {
+  userId: string;
+  email: string;
+  iat: number;
+  exp: number;
 }

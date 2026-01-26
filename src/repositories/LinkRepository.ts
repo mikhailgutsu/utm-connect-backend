@@ -1,36 +1,42 @@
-// src/repositories/CampaignRepository.ts
+// src/repositories/LinkRepository.ts
 import { prisma } from '@/prisma/client';
-import type { ICampaignRepository, CampaignEntity, CreateCampaignDTO } from '@/types';
+import type { ILinkRepository, LinkEntity, CreateLinkDTO } from '@/types';
 
-export class CampaignRepository implements ICampaignRepository {
-  async create(data: CreateCampaignDTO): Promise<CampaignEntity> {
-    return prisma.campaign.create({
+export class LinkRepository implements ILinkRepository {
+  async create(data: CreateLinkDTO): Promise<LinkEntity> {
+    return prisma.link.create({
       data,
     });
   }
 
-  async findById(id: string): Promise<CampaignEntity | null> {
-    return prisma.campaign.findUnique({
+  async findById(id: string): Promise<LinkEntity | null> {
+    return prisma.link.findUnique({
       where: { id },
     });
   }
 
-  async findByUserId(userId: string): Promise<CampaignEntity[]> {
-    return prisma.campaign.findMany({
+  async findByShortCode(shortCode: string): Promise<LinkEntity | null> {
+    return prisma.link.findUnique({
+      where: { shortCode },
+    });
+  }
+
+  async findByUserId(userId: string): Promise<LinkEntity[]> {
+    return prisma.link.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async update(id: string, data: Partial<CampaignEntity>): Promise<CampaignEntity> {
-    return prisma.campaign.update({
+  async incrementClicks(id: string): Promise<void> {
+    await prisma.link.update({
       where: { id },
-      data,
+      data: { clicks: { increment: 1 } },
     });
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.campaign.delete({
+    await prisma.link.delete({
       where: { id },
     });
   }
