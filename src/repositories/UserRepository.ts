@@ -1,4 +1,3 @@
-// src/repositories/UserRepository.ts
 import { prisma } from '@/prisma/client';
 import type { IUserRepository, UserEntity, CreateUserDTO } from '@/types';
 
