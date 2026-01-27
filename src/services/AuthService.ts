@@ -41,11 +41,16 @@ export class AuthService {
     // 4. Хешируем пароль
     const hashedPassword = await this.passwordService.hashPassword(data.password);
 
-    // 5. Создаём пользователя
-    const user = await this.userRepository.create({
-      email: data.email,
-      name: data.name,
-      password: hashedPassword,
+    // 5. Создаём пользователя с дополнительными полями
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        name: data.name,
+        password: hashedPassword,
+        phoneNumber: data.phoneNumber || null,
+        role: data.role !== undefined ? data.role : 0,
+        group: data.group || null,
+      },
     });
 
     // 6. Создаём токены

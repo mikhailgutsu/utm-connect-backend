@@ -91,8 +91,11 @@ export interface LoginDTO {
 export interface RegisterDTO {
   email: string;
   name: string;
+  phoneNumber?: string;
   password: string;
   passwordConfirm: string;
+  role?: number;        // 0 = Студент, 1 = Профессор, 2 = Админ
+  group?: string;       // CR-211 (только для студентов)
 }
 
 export interface AuthResponse {

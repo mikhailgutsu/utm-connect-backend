@@ -13,8 +13,11 @@ const authService = new AuthService(userRepository);
 const RegisterSchema = z.object({
   email: z.string().email('Invalid email'),
   name: z.string().min(1, 'Name is required'),
+  phoneNumber: z.string().optional(),
   password: z.string().min(12, 'Password must be at least 12 characters'),
   passwordConfirm: z.string(),
+  role: z.number().min(0).max(2).optional().default(0), // 0=Студент, 1=Профессор, 2=Админ
+  group: z.string().optional(), // CR-211
 });
 
 const LoginSchema = z.object({

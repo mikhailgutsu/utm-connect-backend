@@ -12,6 +12,7 @@ model User {
   email     String   @unique
   name      String
   password  String   // ← Bcrypt хеш!
+  phoneNumber String? // Номер телефона
   
   // Профиль пользователя
   role      Int      @default(0)  // 0 = студент, 1 = преподаватель, 2 = админ
