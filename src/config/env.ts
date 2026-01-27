@@ -11,7 +11,7 @@ export const config = {
   jwtRefreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
   
   // CORS
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:8080',
   
   // Password требования
   passwordMinLength: parseInt(process.env.PASSWORD_MIN_LENGTH || '12'),
