@@ -1,161 +1,131 @@
 # UTM Connect Backend
 
-SOLID-архитектура бэкенда для UTM Connect
-
-## 📋 Требования
+## Requirements
 
 - Node.js 18+
-- PostgreSQL 12+
+- Docker & Docker Compose
+- Make
 
-## 🚀 Установка
-
-```bash
-# Установить зависимости
-npm install
-
-# Настроить переменные окружения
-cp .env.example .env
-
-# Создать базу данных и применить миграции
-npm run prisma:migrate
-
-# Развернуть сервер
-npm run dev
-```
-
-## 📁 Структура проекта
-
-```
-src/
-├── config/          # Конфигурация (переменные окружения)
-├── prisma/          # Prisma клиент
-├── types/           # TypeScript типы и интерфейсы
-├── repositories/    # Data Access Layer (DAL)
-├── services/        # Business Logic Layer (BLL)
-├── routes/          # API маршруты
-└── index.ts         # Точка входа
-```
-
-## 🏗️ SOLID принципы
-
-### 1. **Single Responsibility Principle (SRP)**
-Каждый класс отвечает за одну задачу:
-- `UserRepository` - работа с БД пользователей
-- `UserService` - бизнес-логика пользователей
-- `users.ts` (routes) - HTTP эндпоинты
-
-### 2. **Open/Closed Principle (OCP)**
-Используются интерфейсы (`IUserRepository`, `ILinkRepository`, `ICampaignRepository`):
-```typescript
-export interface IUserRepository {
-  create(data: CreateUserDTO): Promise<UserEntity>;
-  findById(id: string): Promise<UserEntity | null>;
-  // ...
-}
-```
-
-### 3. **Liskov Substitution Principle (LSP)**
-Реализации репозиториев взаимозаменяемы через интерфейсы.
-
-### 4. **Interface Segregation Principle (ISP)**
-Каждый интерфейс содержит только необходимые методы.
-
-### 5. **Dependency Inversion Principle (DIP)**
-Services зависят от интерфейсов, не от конкретных реализаций:
-```typescript
-constructor(private userRepository: IUserRepository) {}
-```
-
-## 📊 Слои архитектуры
-
-```
-┌─────────────────┐
-│  Express Routes │  ← API эндпоинты
-├─────────────────┤
-│    Services     │  ← Бизнес-логика
-├─────────────────┤
-│  Repositories   │  ← Работа с БД
-├─────────────────┤
-│     Prisma      │  ← ORM
-├─────────────────┤
-│   PostgreSQL    │  ← База данных
-└─────────────────┘
-```
-
-## 🗄️ База данных: PostgreSQL + Prisma
-
-### Почему PostgreSQL?
-✅ Надёжная и масштабируемая СУБД
-✅ ACID транзакции
-✅ Отличная производительность
-✅ Serverless-friendly (Vercel Postgres, Neon, Supabase)
-✅ Полнотекстовый поиск
-✅ JSONB для гибкости
-
-### Почему Prisma?
-✅ Отличный TypeScript support
-✅ Удобные миграции
-✅ Автогенерация типов
-✅ Хороший DX
-✅ Встроенная валидация
-
-## 📝 API Endpoints
-
-### Users
-- `POST /api/users` - Создать пользователя
-- `GET /api/users/:id` - Получить пользователя
-
-### Campaigns
-- `POST /api/campaigns` - Создать кампанию
-- `GET /api/campaigns/:id` - Получить кампанию
-- `GET /api/campaigns/user/:userId` - Все кампании пользователя
-
-### Links
-- `POST /api/links` - Создать короткую ссылку
-- `GET /api/links/:shortCode` - Перейти по ссылке (записывает клик)
-
-## 🔐 Безопасность
-
-- [x] CORS настройка
-- [x] Helmet для защиты заголовков
-- [x] Valition с Zod
-- [ ] TODO: JWT аутентификация
-- [ ] TODO: Rate limiting
-- [ ] TODO: SQL injection protection (используется Prisma)
-
-## 📚 Миграции
+## Quick Start
 
 ```bash
-# Создать новую миграцию
-npm run prisma:migrate
+# Full setup (install deps + Docker + migrate + seed)
+make setup
 
-# Применить миграции
-npm run prisma:push
-
-# Сгенерировать Prisma Client
-npm run prisma:generate
+# Start development server
+make dev
 ```
 
-## 🧪 Тестирование
+## Setup Commands
 
 ```bash
-# Заполнить БД тестовыми данными
-npm run seed
+# Install dependencies
+make install
+
+# Create .env file
+make env
+
+# Start Docker containers
+make docker-up
+
+# Run database migrations
+make db-migrate
+
+# Seed database with test data
+make db-seed
 ```
 
-## 📦 Production build
+## Development
 
 ```bash
-npm run build
-npm start
+# Start dev server
+make dev
+
+# Build TypeScript
+make build
+
+# Run production build
+make start
 ```
 
-## 🌐 Деплой на Vercel
+## Docker Commands
 
-1. Подключи репозиторий к Vercel
-2. Добавь `.env` переменные (DATABASE_URL, JWT_SECRET)
-3. Деплой произойдёт автоматически
+```bash
+# Start containers (detached)
+make docker-up
 
-## 📞 Поддержка
+# Stop containers
+make docker-down
 
-Для вопросов и предложений создавай Issues в репозитории.
+# Restart containers
+make docker-restart
+
+# View logs
+make docker-logs
+
+# View PostgreSQL logs only
+make docker-logs-db
+
+# Check running containers
+make docker-ps
+
+# Remove containers and volumes (⚠️ deletes data)
+make docker-clean
+```
+
+## Database Commands
+
+```bash
+# Create and apply migrations
+make db-migrate
+
+# Push schema to database
+make db-push
+
+# Generate Prisma Client
+make db-generate
+
+# Seed with test data
+make db-seed
+
+# Open PostgreSQL shell
+make db-shell
+
+# Create backup
+make db-backup
+
+# Reset database (⚠️ deletes all data)
+make db-reset
+```
+
+## Code Quality
+
+```bash
+# Run ESLint
+make lint
+
+# Fix ESLint issues
+make lint-fix
+
+# Format code with Prettier
+make format
+
+# Check code format
+make format-check
+```
+
+## Utility Commands
+
+```bash
+# Show all available commands
+make help
+
+# Show project info
+make info
+
+# Check service status
+make status
+
+# Clean build artifacts
+make clean
+```
