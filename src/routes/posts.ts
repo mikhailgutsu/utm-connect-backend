@@ -18,14 +18,14 @@ const CommentPostSchema = z.object({
 
 /**
  * POST /api/posts/create
- * Создать новый пост
+ * Create a new post
  */
 router.post('/create', authenticate, async (req, res) => {
   try {
     const currentUser = getCurrentUser(req);
     const { description, photoUrls } = CreatePostSchema.parse(req.body);
 
-    // Создаем пост
+    // Create a post
     const post = await prisma.post.create({
       data: {
         userId: currentUser.userId,
@@ -36,7 +36,7 @@ router.post('/create', authenticate, async (req, res) => {
       include: { comments: true },
     });
 
-    // Добавляем ID поста в user.postIds
+    // Add post ID to user's postIds
     const user = await userRepository.findById(currentUser.userId);
     if (user) {
       await userRepository.update(currentUser.userId, {
@@ -59,7 +59,7 @@ router.post('/create', authenticate, async (req, res) => {
 
 /**
  * POST /api/posts/:id/like
- * Лайкнуть пост
+ * Like a post
  */
 router.post('/:id/like', authenticate, async (req, res) => {
   try {
@@ -76,13 +76,13 @@ router.post('/:id/like', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что уже не лайкнули
+    // Check that the post is not already liked
     if (post.likes.includes(currentUser.userId)) {
       res.status(400).json({ error: 'Already liked this post' });
       return;
     }
 
-    // Добавляем лайк
+    // Add a like
     const updatedPost = await prisma.post.update({
       where: { id: postId },
       data: {
@@ -102,7 +102,7 @@ router.post('/:id/like', authenticate, async (req, res) => {
 
 /**
  * POST /api/posts/:id/unlike
- * Убрать лайк с поста
+ * Unlike a post
  */
 router.post('/:id/unlike', authenticate, async (req, res) => {
   try {
@@ -119,17 +119,17 @@ router.post('/:id/unlike', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что лайк существует
+    // Check that the like exists
     if (!post.likes.includes(currentUser.userId)) {
       res.status(400).json({ error: 'You did not like this post' });
       return;
     }
 
-    // Удаляем лайк
+    // Remove a like
     const updatedPost = await prisma.post.update({
       where: { id: postId },
       data: {
-        likes: post.likes.filter(id => id !== currentUser.userId),
+        likes: post.likes.filter((id) => id !== currentUser.userId),
       },
       include: { comments: true },
     });
@@ -145,7 +145,7 @@ router.post('/:id/unlike', authenticate, async (req, res) => {
 
 /**
  * DELETE /api/posts/:id/likes/:userId
- * Удалить лайк (deprecated - используй /api/posts/:id/unlike)
+ * Remove a like (deprecated - use /api/posts/:id/unlike)
  */
 router.delete('/:id/likes/:userId', authenticate, async (req, res) => {
   try {
@@ -170,7 +170,7 @@ router.delete('/:id/likes/:userId', authenticate, async (req, res) => {
     const updatedPost = await prisma.post.update({
       where: { id: postId },
       data: {
-        likes: post.likes.filter(id => id !== currentUser.userId),
+        likes: post.likes.filter((id) => id !== currentUser.userId),
       },
       include: { comments: true },
     });
@@ -186,7 +186,7 @@ router.delete('/:id/likes/:userId', authenticate, async (req, res) => {
 
 /**
  * POST /api/posts/:id/comment
- * Добавить комментарий к посту
+ * Add a comment to a post
  */
 router.post('/:id/comment', authenticate, async (req, res) => {
   try {
@@ -203,7 +203,7 @@ router.post('/:id/comment', authenticate, async (req, res) => {
       return;
     }
 
-    // Создаем комментарий
+    // Create a comment
     await prisma.comment.create({
       data: {
         postId,
@@ -212,7 +212,7 @@ router.post('/:id/comment', authenticate, async (req, res) => {
       },
     });
 
-    // Получаем пост с комментариями
+    // Get updated post with comments
     const updatedPost = await prisma.post.findUnique({
       where: { id: postId },
       include: { comments: true },
@@ -233,7 +233,7 @@ router.post('/:id/comment', authenticate, async (req, res) => {
 
 /**
  * GET /api/posts/:id/comments
- * Получить все комментарии поста
+ * Get all comments for a post
  */
 router.get('/:id/comments', async (req, res) => {
   try {
@@ -248,13 +248,13 @@ router.get('/:id/comments', async (req, res) => {
       return;
     }
 
-    // Получаем все комментарии с информацией о пользователях
+    // Get comments for the post
     const comments = await prisma.comment.findMany({
       where: { postId },
       orderBy: { createdAt: 'asc' },
     });
 
-    // Получаем информацию о пользователях для каждого комментария
+    // Get user info for each comment
     const commentsWithUsers = await Promise.all(
       comments.map(async (comment) => {
         const user = await userRepository.findById(comment.userId);
@@ -264,11 +264,13 @@ router.get('/:id/comments', async (req, res) => {
           userId: comment.userId,
           text: comment.text,
           createdAt: comment.createdAt,
-          user: user ? {
-            id: user.id,
-            name: user.name,
-            photoUrl: user.photoUrl,
-          } : null,
+          user: user
+            ? {
+                id: user.id,
+                name: user.name,
+                photoUrl: user.photoUrl,
+              }
+            : null,
         };
       })
     );
@@ -284,7 +286,7 @@ router.get('/:id/comments', async (req, res) => {
 
 /**
  * PUT /api/posts/:id
- * Обновить описание поста
+ * Update post description
  */
 router.put('/:id', authenticate, async (req, res) => {
   try {
@@ -301,7 +303,7 @@ router.put('/:id', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что это автор поста
+    // Check that the current user is the author of the post
     if (post.userId !== currentUser.userId) {
       res.status(403).json({ error: 'You can only update your own posts' });
       return;
@@ -331,7 +333,7 @@ router.put('/:id', authenticate, async (req, res) => {
 
 /**
  * DELETE /api/posts/:id
- * Удалить пост (только автор)
+ * Delete a post (only author)
  */
 router.delete('/:id', authenticate, async (req, res) => {
   try {
@@ -347,22 +349,22 @@ router.delete('/:id', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что это автор поста
+    // Check that the current user is the author of the post
     if (post.userId !== currentUser.userId) {
       res.status(403).json({ error: 'You can only delete your own posts' });
       return;
     }
 
-    // Удаляем пост
+    // Delete the post
     await prisma.post.delete({
       where: { id: postId },
     });
 
-    // Удаляем ID поста из user.postIds
+    // Remove the post ID from user.postIds
     const user = await userRepository.findById(currentUser.userId);
     if (user) {
       await userRepository.update(currentUser.userId, {
-        postIds: user.postIds.filter(id => id !== postId),
+        postIds: user.postIds.filter((id) => id !== postId),
       });
     }
 
@@ -374,7 +376,7 @@ router.delete('/:id', authenticate, async (req, res) => {
 
 /**
  * GET /api/posts/:id
- * Получить информацию о посте
+ * Get post information
  */
 router.get('/:id', async (req, res) => {
   try {
@@ -398,7 +400,7 @@ router.get('/:id', async (req, res) => {
 
 /**
  * GET /api/posts
- * Получить все посты (с пагинацией)
+ * Get all posts (with pagination)
  */
 router.get('/', async (req, res) => {
   try {
@@ -431,7 +433,7 @@ router.get('/', async (req, res) => {
 
 /**
  * GET /api/posts/user/:userId
- * Получить все посты пользователя
+ * Get all posts for a user
  */
 router.get('/user/:userId', async (req, res) => {
   try {
@@ -440,14 +442,14 @@ router.get('/user/:userId', async (req, res) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    // Проверяем существование пользователя
+    // Check if the user exists
     const user = await userRepository.findById(userId);
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    // Получаем посты пользователя
+    // Get posts for the user
     const posts = await prisma.post.findMany({
       where: { userId },
       skip,

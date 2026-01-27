@@ -12,20 +12,20 @@ const SendFriendRequestSchema = z.object({
 
 /**
  * POST /api/friends/request
- * Отправить запрос на дружбу
+ * Send a friend request
  */
 router.post('/request', authenticate, async (req, res) => {
   try {
     const currentUser = getCurrentUser(req);
     const { targetUserId } = SendFriendRequestSchema.parse(req.body);
 
-    // Проверяем что пользователь не отправляет запрос самому себе
+    // Check that the user is not sending a request to themselves
     if (currentUser.userId === targetUserId) {
       res.status(400).json({ error: 'Cannot send friend request to yourself' });
       return;
     }
 
-    // Получаем обоих пользователей
+    // Get both users
     const [sender, target] = await Promise.all([
       userRepository.findById(currentUser.userId),
       userRepository.findById(targetUserId),
@@ -36,25 +36,25 @@ router.post('/request', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что уже не друзья
+    // Check that they are not already friends
     if (sender.friends.includes(targetUserId)) {
       res.status(400).json({ error: 'Already friends' });
       return;
     }
 
-    // Проверяем что запрос уже не отправлен
+    // Check that the friend request has not already been sent
     if (sender.friendRequestsSent.includes(targetUserId)) {
       res.status(400).json({ error: 'Friend request already sent' });
       return;
     }
 
-    // Обновляем оба профиля
+    // Update both profiles
     await Promise.all([
-      // Добавляем targetUserId в мои исходящие запросы
+      // Add targetUserId to my outgoing requests
       userRepository.update(currentUser.userId, {
         friendRequestsSent: [...sender.friendRequestsSent, targetUserId],
       }),
-      // Добавляем мой ID в входящие запросы целевого пользователя
+      // Add my ID to the target user's incoming requests
       userRepository.update(targetUserId, {
         friendRequestsReceived: [...target.friendRequestsReceived, currentUser.userId],
       }),
@@ -72,16 +72,18 @@ router.post('/request', authenticate, async (req, res) => {
 
 /**
  * POST /api/friends/accept
- * Принять запрос на дружбу
+ * Accept a friend request
  */
 router.post('/accept', authenticate, async (req, res) => {
   try {
     const currentUser = getCurrentUser(req);
-    const { requesterId } = z.object({
-      requesterId: z.string().min(1, 'Requester ID is required'),
-    }).parse(req.body);
+    const { requesterId } = z
+      .object({
+        requesterId: z.string().min(1, 'Requester ID is required'),
+      })
+      .parse(req.body);
 
-    // Получаем обоих пользователей
+    // Get both users
     const [me, requester] = await Promise.all([
       userRepository.findById(currentUser.userId),
       userRepository.findById(requesterId),
@@ -92,28 +94,28 @@ router.post('/accept', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что запрос действительно существует
+    // Check that the friend request actually exists
     if (!me.friendRequestsReceived.includes(requesterId)) {
       res.status(400).json({ error: 'Friend request not found' });
       return;
     }
 
-    // Проверяем что уже не друзья
+    // Check that they are not already friends
     if (me.friends.includes(requesterId)) {
       res.status(400).json({ error: 'Already friends' });
       return;
     }
 
-    // Обновляем оба профиля
+    // Update both profiles
     await Promise.all([
-      // Обновляю свой профиль: удаляю из входящих запросов и добавляю в друзья
+      // Update my profile: remove from incoming requests and add to friends
       userRepository.update(currentUser.userId, {
-        friendRequestsReceived: me.friendRequestsReceived.filter(id => id !== requesterId),
+        friendRequestsReceived: me.friendRequestsReceived.filter((id) => id !== requesterId),
         friends: [...me.friends, requesterId],
       }),
-      // Обновляю профиль отправителя: удаляю из исходящих запросов и добавляю в друзья
+      // Update requester's profile: remove from outgoing requests and add to friends
       userRepository.update(requesterId, {
-        friendRequestsSent: requester.friendRequestsSent.filter(id => id !== currentUser.userId),
+        friendRequestsSent: requester.friendRequestsSent.filter((id) => id !== currentUser.userId),
         friends: [...requester.friends, currentUser.userId],
       }),
     ]);
@@ -130,22 +132,24 @@ router.post('/accept', authenticate, async (req, res) => {
 
 /**
  * POST /api/friends/remove
- * Удалить из друзей
+ * Remove a friend
  */
 router.post('/remove', authenticate, async (req, res) => {
   try {
     const currentUser = getCurrentUser(req);
-    const { friendId } = z.object({
-      friendId: z.string().min(1, 'Friend ID is required'),
-    }).parse(req.body);
+    const { friendId } = z
+      .object({
+        friendId: z.string().min(1, 'Friend ID is required'),
+      })
+      .parse(req.body);
 
-    // Проверяем что не пытаемся удалить самого себя
+    // Check that we are not trying to remove ourselves
     if (currentUser.userId === friendId) {
       res.status(400).json({ error: 'Cannot remove yourself' });
       return;
     }
 
-    // Получаем обоих пользователей
+    // Get both users
     const [me, friend] = await Promise.all([
       userRepository.findById(currentUser.userId),
       userRepository.findById(friendId),
@@ -156,19 +160,19 @@ router.post('/remove', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что действительно друзья
+    // Check that they are actually friends
     if (!me.friends.includes(friendId)) {
       res.status(400).json({ error: 'Not friends' });
       return;
     }
 
-    // Удаляем друг друга из массивов друзей
+    // Remove each other from friends arrays
     await Promise.all([
       userRepository.update(currentUser.userId, {
-        friends: me.friends.filter(id => id !== friendId),
+        friends: me.friends.filter((id) => id !== friendId),
       }),
       userRepository.update(friendId, {
-        friends: friend.friends.filter(id => id !== currentUser.userId),
+        friends: friend.friends.filter((id) => id !== currentUser.userId),
       }),
     ]);
 

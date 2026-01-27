@@ -13,29 +13,29 @@ const SendMessageSchema = z.object({
 
 /**
  * POST /api/messages/conversation/:userId
- * Получить или создать беседу с пользователем
+ * Create or get a conversation with a specific user
  */
 router.post('/conversation/:userId', authenticate, async (req, res) => {
   try {
     const currentUser = getCurrentUser(req);
     const { userId: targetUserId } = req.params;
 
-    // Проверяем что пользователь не создает беседу с самим собой
+    // Check that the user is not creating a conversation with themselves
     if (currentUser.userId === targetUserId) {
       res.status(400).json({ error: 'Cannot create conversation with yourself' });
       return;
     }
 
-    // Проверяем существование целевого пользователя
+    // Check that the target user exists
     const targetUser = await userRepository.findById(targetUserId);
     if (!targetUser) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    // Ищем существующую беседу
+    // Search for an existing conversation
     const participants = [currentUser.userId, targetUserId].sort();
-    
+
     let conversation = await prisma.conversation.findFirst({
       where: {
         participants: {
@@ -50,7 +50,7 @@ router.post('/conversation/:userId', authenticate, async (req, res) => {
       },
     });
 
-    // Если беседы нет - создаем новую
+    // If not found, create a new conversation
     if (!conversation) {
       conversation = await prisma.conversation.create({
         data: {
@@ -62,16 +62,18 @@ router.post('/conversation/:userId', authenticate, async (req, res) => {
       });
     }
 
-    // Получаем информацию о собеседнике
+    // Get information about the other user
     const otherUser = await userRepository.findById(targetUserId);
 
     res.status(200).json({
       conversation,
-      otherUser: otherUser ? {
-        id: otherUser.id,
-        name: otherUser.name,
-        photoUrl: otherUser.photoUrl,
-      } : null,
+      otherUser: otherUser
+        ? {
+            id: otherUser.id,
+            name: otherUser.name,
+            photoUrl: otherUser.photoUrl,
+          }
+        : null,
     });
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
@@ -80,7 +82,7 @@ router.post('/conversation/:userId', authenticate, async (req, res) => {
 
 /**
  * POST /api/messages/:conversationId
- * Отправить сообщение в беседу
+ * Send a message in a conversation
  */
 router.post('/:conversationId', authenticate, async (req, res) => {
   try {
@@ -88,7 +90,7 @@ router.post('/:conversationId', authenticate, async (req, res) => {
     const { conversationId } = req.params;
     const { text } = SendMessageSchema.parse(req.body);
 
-    // Проверяем существование беседы
+    // Verify conversation existence
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
     });
@@ -98,13 +100,13 @@ router.post('/:conversationId', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что пользователь - участник беседы
+    // Verify that the user is a participant in the conversation
     if (!conversation.participants.includes(currentUser.userId)) {
       res.status(403).json({ error: 'You are not a participant of this conversation' });
       return;
     }
 
-    // Создаем сообщение
+    // Create the message
     const message = await prisma.message.create({
       data: {
         conversationId,
@@ -113,7 +115,7 @@ router.post('/:conversationId', authenticate, async (req, res) => {
       },
     });
 
-    // Обновляем последнее сообщение в беседе
+    // Update conversation's last message info
     await prisma.conversation.update({
       where: { id: conversationId },
       data: {
@@ -137,7 +139,7 @@ router.post('/:conversationId', authenticate, async (req, res) => {
 
 /**
  * GET /api/messages/:conversationId
- * Получить все сообщения в беседе
+ * Get all messages in a conversation
  */
 router.get('/:conversationId', authenticate, async (req, res) => {
   try {
@@ -147,7 +149,7 @@ router.get('/:conversationId', authenticate, async (req, res) => {
     const limit = parseInt(req.query.limit as string) || 50;
     const skip = (page - 1) * limit;
 
-    // Проверяем существование беседы
+    // Verify conversation existence
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
     });
@@ -157,13 +159,13 @@ router.get('/:conversationId', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что пользователь - участник беседы
+    // Verify that the user is a participant in the conversation
     if (!conversation.participants.includes(currentUser.userId)) {
       res.status(403).json({ error: 'You are not a participant of this conversation' });
       return;
     }
 
-    // Получаем сообщения
+    // Get messages
     const messages = await prisma.message.findMany({
       where: { conversationId },
       orderBy: { createdAt: 'asc' },
@@ -175,17 +177,19 @@ router.get('/:conversationId', authenticate, async (req, res) => {
       where: { conversationId },
     });
 
-    // Получаем информацию о собеседнике
-    const otherUserId = conversation.participants.find(id => id !== currentUser.userId);
+    // Get information about the other user
+    const otherUserId = conversation.participants.find((id) => id !== currentUser.userId);
     const otherUser = otherUserId ? await userRepository.findById(otherUserId) : null;
 
     res.status(200).json({
       messages,
-      otherUser: otherUser ? {
-        id: otherUser.id,
-        name: otherUser.name,
-        photoUrl: otherUser.photoUrl,
-      } : null,
+      otherUser: otherUser
+        ? {
+            id: otherUser.id,
+            name: otherUser.name,
+            photoUrl: otherUser.photoUrl,
+          }
+        : null,
       pagination: {
         total,
         page,
@@ -200,13 +204,13 @@ router.get('/:conversationId', authenticate, async (req, res) => {
 
 /**
  * GET /api/messages/conversations
- * Получить список всех бесед пользователя
+ * Get a list of all user's conversations
  */
 router.get('/conversations/list', authenticate, async (req, res) => {
   try {
     const currentUser = getCurrentUser(req);
 
-    // Получаем все беседы пользователя
+    // Get all user's conversations
     const conversations = await prisma.conversation.findMany({
       where: {
         participants: {
@@ -222,13 +226,13 @@ router.get('/conversations/list', authenticate, async (req, res) => {
       },
     });
 
-    // Обогащаем данными о собеседниках
+    // Enrich conversations with other user info and unread message count
     const conversationsWithUsers = await Promise.all(
       conversations.map(async (conversation) => {
-        const otherUserId = conversation.participants.find(id => id !== currentUser.userId);
+        const otherUserId = conversation.participants.find((id) => id !== currentUser.userId);
         const otherUser = otherUserId ? await userRepository.findById(otherUserId) : null;
-        
-        // Считаем непрочитанные сообщения
+
+        // Count unread messages
         const unreadCount = await prisma.message.count({
           where: {
             conversationId: conversation.id,
@@ -244,11 +248,13 @@ router.get('/conversations/list', authenticate, async (req, res) => {
           lastMessageAt: conversation.lastMessageAt,
           createdAt: conversation.createdAt,
           unreadCount,
-          otherUser: otherUser ? {
-            id: otherUser.id,
-            name: otherUser.name,
-            photoUrl: otherUser.photoUrl,
-          } : null,
+          otherUser: otherUser
+            ? {
+                id: otherUser.id,
+                name: otherUser.name,
+                photoUrl: otherUser.photoUrl,
+              }
+            : null,
         };
       })
     );
@@ -264,14 +270,14 @@ router.get('/conversations/list', authenticate, async (req, res) => {
 
 /**
  * PUT /api/messages/:conversationId/read
- * Пометить все сообщения в беседе как прочитанные
+ * Mark all messages in a conversation as read
  */
 router.put('/:conversationId/read', authenticate, async (req, res) => {
   try {
     const currentUser = getCurrentUser(req);
     const { conversationId } = req.params;
 
-    // Проверяем существование беседы
+    // Verify conversation existence
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
     });
@@ -281,13 +287,13 @@ router.put('/:conversationId/read', authenticate, async (req, res) => {
       return;
     }
 
-    // Проверяем что пользователь - участник беседы
+    // Verify that the user is a participant in the conversation
     if (!conversation.participants.includes(currentUser.userId)) {
       res.status(403).json({ error: 'You are not a participant of this conversation' });
       return;
     }
 
-    // Помечаем все сообщения как прочитанные (кроме собственных)
+    // Mark all messages as read (except own)
     await prisma.message.updateMany({
       where: {
         conversationId,

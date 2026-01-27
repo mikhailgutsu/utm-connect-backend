@@ -1,4 +1,3 @@
-// src/routes/auth.ts
 import express from 'express';
 import { AuthService } from '@/services';
 import { UserRepository } from '@/repositories';
@@ -9,15 +8,15 @@ const router = express.Router();
 const userRepository = new UserRepository();
 const authService = new AuthService(userRepository);
 
-// Schemas для валидации
+// Schemas for validation
 const RegisterSchema = z.object({
   email: z.string().email('Invalid email'),
   name: z.string().min(1, 'Name is required'),
   phoneNumber: z.string().optional(),
   password: z.string().min(12, 'Password must be at least 12 characters'),
   passwordConfirm: z.string(),
-  role: z.number().min(0).max(2).optional().default(0), // 0=Студент, 1=Профессор, 2=Админ
-  group: z.string().optional(), // CR-211
+  role: z.number().min(0).max(2).optional().default(0), // 0=Student, 1=Professor, 2=Admin
+  group: z.string().optional(),
 });
 
 const LoginSchema = z.object({
@@ -31,26 +30,26 @@ const RefreshSchema = z.object({
 
 /**
  * POST /api/auth/register
- * Регистрация нового пользователя
+ * Register a new user
  */
 router.post('/register', async (req, res) => {
   try {
-    // Валидируем входные данные
+    // Validate input data
     const data = RegisterSchema.parse(req.body);
 
-    // Регистрируем пользователя
+    // Register the user
     const result = await authService.register(data);
 
-    // Отправляем refresh token в HttpOnly cookie
+    // Send refresh token in HttpOnly cookie
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS только в production
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',
     });
 
-    // Отправляем ответ (без refresh token в body)
+    // Send response (without refresh token in body)
     res.status(201).json({
       accessToken: result.accessToken,
       user: result.user,
@@ -66,26 +65,26 @@ router.post('/register', async (req, res) => {
 
 /**
  * POST /api/auth/login
- * Вход в систему
+ * User login
  */
 router.post('/login', async (req, res) => {
   try {
-    // Валидируем входные данные
+    // Validate input data
     const data = LoginSchema.parse(req.body);
 
-    // Проверяем учётные данные
+    // Check credentials
     const result = await authService.login(data);
 
-    // Отправляем refresh token в HttpOnly cookie
+    // Send refresh token in HttpOnly cookie
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',
     });
 
-    // Отправляем ответ (без refresh token в body)
+    // Send response (without refresh token in body)
     res.status(200).json({
       accessToken: result.accessToken,
       user: result.user,
@@ -101,14 +100,14 @@ router.post('/login', async (req, res) => {
 
 /**
  * POST /api/auth/refresh
- * Обновление access token через refresh token
+ * Refresh access token using refresh token
  */
 router.post('/refresh', async (req, res) => {
   try {
-    // Валидируем входные данные
+    // Validate input data
     const data = RefreshSchema.parse(req.body);
 
-    // Обновляем access token
+    // Refresh access token
     const result = await authService.refreshAccessToken(data.refreshToken);
 
     res.status(200).json({
@@ -125,16 +124,16 @@ router.post('/refresh', async (req, res) => {
 
 /**
  * POST /api/auth/logout
- * Выход из системы (отозвать refresh token)
+ * Logout (revoke refresh token)
  */
 router.post('/logout', authenticate, async (req, res) => {
   try {
     const user = getCurrentUser(req);
 
-    // Отозываем refresh token
+    // Revoke refresh token
     await authService.logout(user.userId);
 
-    // Удаляем cookie
+    // Clear cookie
     res.clearCookie('refreshToken', { path: '/' });
 
     res.status(200).json({ message: 'Logged out successfully' });
@@ -145,20 +144,20 @@ router.post('/logout', authenticate, async (req, res) => {
 
 /**
  * GET /api/auth/me
- * Получить информацию о текущем пользователе
+ * Get current user information
  */
 router.get('/me', authenticate, async (req, res): Promise<void> => {
   try {
     const user = getCurrentUser(req);
 
-    // Получаем полную информацию о пользователе
+    // Get full user information
     const fullUser = await userRepository.findById(user.userId);
     if (!fullUser) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    // Возвращаем все поля кроме пароля
+    // Return all fields except password
     const { password, ...userWithoutPassword } = fullUser;
     res.status(200).json(userWithoutPassword);
   } catch (error) {

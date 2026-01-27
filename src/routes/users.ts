@@ -1,4 +1,3 @@
-// src/routes/users.ts
 import express from 'express';
 import { UserService } from '@/services';
 import { UserRepository } from '@/repositories';
@@ -17,7 +16,7 @@ const CreateUserSchema = z.object({
 
 /**
  * POST /api/users
- * Создать нового пользователя
+ * Create a new user
  */
 router.post('/', async (req, res) => {
   try {
@@ -35,7 +34,7 @@ router.post('/', async (req, res) => {
 
 /**
  * GET /api/users
- * Получить список всех пользователей (пароль не возвращаем)
+ * Get all users (without passwords)
  */
 router.get('/', async (_req, res) => {
   try {
@@ -49,7 +48,7 @@ router.get('/', async (_req, res) => {
 
 /**
  * GET /api/users/:id
- * Получить пользователя по ID
+ * Get a user by ID
  */
 router.get('/:id', async (req, res) => {
   try {
@@ -63,8 +62,8 @@ router.get('/:id', async (req, res) => {
 
 /**
  * GET /api/users/info/:id
- * Получить полную информацию о пользователе
- * Включает: друзей, группы, фотографии, посты и т.д.
+ * Get full information about a user
+ * Includes: friends, groups, photos, posts, etc.
  */
 router.get('/info/:id', async (req, res) => {
   try {
@@ -77,7 +76,7 @@ router.get('/info/:id', async (req, res) => {
 
 /**
  * GET /api/users/me/info
- * Получить полную информацию о текущем авторизованном пользователе
+ * Get full information about the current authenticated user
  */
 router.get('/me/info', authenticate, async (req, res) => {
   try {

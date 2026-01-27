@@ -15,7 +15,7 @@ const CreateGroupSchema = z.object({
 
 /**
  * POST /api/groups
- * Создать новую группу
+ * Create a new group
  */
 router.post('/', authenticate, async (req, res) => {
   try {
@@ -33,7 +33,7 @@ router.post('/', authenticate, async (req, res) => {
 
 /**
  * GET /api/groups/:id
- * Получить группу по ID
+ * Get a group by ID
  */
 router.get('/:id', async (req, res) => {
   try {
@@ -46,7 +46,7 @@ router.get('/:id', async (req, res) => {
 
 /**
  * POST /api/groups/:id/users/:userId
- * Добавить пользователя в группу
+ * Add a user to a group
  */
 router.post('/:id/users/:userId', authenticate, async (req, res) => {
   try {
@@ -59,7 +59,7 @@ router.post('/:id/users/:userId', authenticate, async (req, res) => {
 
 /**
  * DELETE /api/groups/:id/users/:userId
- * Удалить пользователя из группы
+ * Remove a user from a group
  */
 router.delete('/:id/users/:userId', authenticate, async (req, res) => {
   try {
@@ -72,7 +72,7 @@ router.delete('/:id/users/:userId', authenticate, async (req, res) => {
 
 /**
  * PUT /api/groups/:id
- * Обновить группу
+ * Update a group
  */
 router.put('/:id', authenticate, async (req, res) => {
   try {
@@ -86,7 +86,7 @@ router.put('/:id', authenticate, async (req, res) => {
 
 /**
  * DELETE /api/groups/:id
- * Удалить группу
+ * Delete a group
  */
 router.delete('/:id', authenticate, async (req, res) => {
   try {
