@@ -11,32 +11,26 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String
-  password  String   // ← Bcrypt хеш!
-  phoneNumber String? // Номер телефона
+  password  String
+  phoneNumber String?
   
-  // Профиль пользователя
-  role      Int      @default(0)  // 0 = студент, 1 = преподаватель, 2 = админ
-  group     String?  // Группа (CR-211)
+  role      Int      @default(0)
+  group     String?
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Отношения
   campaigns      Campaign[]
   links          Link[]
   refreshTokens  RefreshToken[]
   
-  // Друзья
   friendOf       Friend[]  @relation("UserFriends")
   friends        Friend[]  @relation("FriendOf")
   
-  // Группы, в которых участвует
   groupMemberships GroupMember[]
   
-  // Фотографии профиля
   profilePhotos  Photo[] @relation("ProfilePhotos")
   
-  // Посты на стене
   wallPosts      Post[]  @relation("WallPosts")
   
   @@index([email])
@@ -44,7 +38,7 @@ model User {
 
 model RefreshToken {
   id        String   @id @default(cuid())
-  token     String   @unique  // ← Хешированный refresh token!
+  token     String   @unique
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
@@ -100,9 +94,6 @@ model LinkAnalytic {
   @@index([timestamp])
 }
 
-// ====== SOCIAL NETWORK ======
-
-// Friend relationship between users
 model Friend {
   id        String   @id @default(cuid())
   userId    String
@@ -118,10 +109,9 @@ model Friend {
   @@index([friendId])
 }
 
-// Group/Class model
 model Group {
   id        String   @id @default(cuid())
-  name      String   // CR-211
+  name      String
   description String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -131,7 +121,6 @@ model Group {
   @@unique([name])
 }
 
-// Group membership model
 model GroupMember {
   id        String   @id @default(cuid())
   userId    String
@@ -147,7 +136,6 @@ model GroupMember {
   @@index([groupId])
 }
 
-// User profile photo model
 model Photo {
   id        String   @id @default(cuid())
   userId    String
@@ -163,7 +151,6 @@ model Photo {
   @@index([userId])
 }
 
-// User wall post model
 model Post {
   id        String   @id @default(cuid())
   userId    String
