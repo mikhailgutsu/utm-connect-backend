@@ -11,6 +11,7 @@ import usersRouter from '@/routes/users';
 import groupsRouter from '@/routes/groups';
 import postsRouter from '@/routes/posts';
 import friendsRouter from '@/routes/friends';
+import messagesRouter from '@/routes/messages';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/groups', groupsRouter);
 app.use('/api/posts', postsRouter);
 app.use('/api/friends', friendsRouter);
+app.use('/api/messages', messagesRouter);
 
 // 404 handler
 app.use((_req, res) => {
