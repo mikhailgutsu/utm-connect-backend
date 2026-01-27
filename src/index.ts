@@ -10,6 +10,7 @@ import authRouter from '@/routes/auth';
 import usersRouter from '@/routes/users';
 import groupsRouter from '@/routes/groups';
 import postsRouter from '@/routes/posts';
+import friendsRouter from '@/routes/friends';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/groups', groupsRouter);
 app.use('/api/posts', postsRouter);
+app.use('/api/friends', friendsRouter);
 
 // 404 handler
 app.use((_req, res) => {

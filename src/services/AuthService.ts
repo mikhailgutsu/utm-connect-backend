@@ -51,7 +51,9 @@ export class AuthService {
         // поддерживаем оба поля: universityGroup и alias group
         universityGroup: data.universityGroup || data.group || null,
         role: data.role !== undefined ? data.role : 0,
-        friends: null,
+        friends: [],
+        friendRequestsSent: [],
+        friendRequestsReceived: [],
         groupIds: [],
         postIds: [],
         photoUrl: null,

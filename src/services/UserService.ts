@@ -8,7 +8,9 @@ export interface UserInfoDTO {
   phoneNumber: string | null;
   universityGroup: string | null;
   role: number;
-  friends: string | null;
+  friends: string[];
+  friendRequestsSent: string[];
+  friendRequestsReceived: string[];
   groupIds: string[];
   postIds: string[];
   photoUrl: string | null;
@@ -63,6 +65,8 @@ export class UserService {
       universityGroup: user.universityGroup,
       role: user.role,
       friends: user.friends,
+      friendRequestsSent: user.friendRequestsSent,
+      friendRequestsReceived: user.friendRequestsReceived,
       groupIds: user.groupIds,
       postIds: user.postIds,
       photoUrl: user.photoUrl,

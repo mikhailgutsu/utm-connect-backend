@@ -31,7 +31,9 @@ export interface UserEntity {
   phoneNumber: string | null;
   universityGroup: string | null;
   role: number;
-  friends: string | null;
+  friends: string[];
+  friendRequestsSent: string[];
+  friendRequestsReceived: string[];
   groupIds: string[];
   postIds: string[];
   photoUrl: string | null;

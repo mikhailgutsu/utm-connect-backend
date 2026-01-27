@@ -17,9 +17,11 @@ model User {
   universityGroup String?
   role            Int     @default(0)
 
-  friends  String?
-  groupIds String[]
-  postIds  String[]
+  friends               String[]
+  friendRequestsSent     String[]
+  friendRequestsReceived String[]
+  groupIds              String[]
+  postIds               String[]
 
   photoUrl        String?
   primaryPhotoUrl String?

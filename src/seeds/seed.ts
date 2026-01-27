@@ -30,7 +30,7 @@ async function main() {
       phoneNumber: '+0987654321',
       universityGroup: 'CR-212',
       role: 0,
-      friends: user1.id,
+      friends: [user1.id],
     },
   });
 
