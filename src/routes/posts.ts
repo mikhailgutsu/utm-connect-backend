@@ -429,4 +429,54 @@ router.get('/', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/posts/user/:userId
+ * Получить все посты пользователя
+ */
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Проверяем существование пользователя
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Получаем посты пользователя
+    const posts = await prisma.post.findMany({
+      where: { userId },
+      skip,
+      take: limit,
+      include: { comments: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const total = await prisma.post.count({
+      where: { userId },
+    });
+
+    res.status(200).json({
+      posts,
+      user: {
+        id: user.id,
+        name: user.name,
+        photoUrl: user.photoUrl,
+      },
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
 export default router;
