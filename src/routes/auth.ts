@@ -158,13 +158,9 @@ router.get('/me', authenticate, async (req, res): Promise<void> => {
       return;
     }
 
-    // Не отправляем пароль
-    res.status(200).json({
-      id: fullUser.id,
-      email: fullUser.email,
-      name: fullUser.name,
-      createdAt: fullUser.createdAt,
-    });
+    // Возвращаем все поля кроме пароля
+    const { password, ...userWithoutPassword } = fullUser;
+    res.status(200).json(userWithoutPassword);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
