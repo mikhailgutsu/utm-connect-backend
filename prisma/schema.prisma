@@ -12,12 +12,33 @@ model User {
   email     String   @unique
   name      String
   password  String   // ← Bcrypt хеш!
+  
+  // Профиль пользователя
+  role      Int      @default(0)  // 0 = студент, 1 = преподаватель, 2 = админ
+  group     String?  // Группа (CR-211)
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Отношения
   campaigns      Campaign[]
   links          Link[]
   refreshTokens  RefreshToken[]
+  
+  // Друзья
+  friendOf       Friend[]  @relation("UserFriends")
+  friends        Friend[]  @relation("FriendOf")
+  
+  // Группы, в которых участвует
+  groupMemberships GroupMember[]
+  
+  // Фотографии профиля
+  profilePhotos  Photo[] @relation("ProfilePhotos")
+  
+  // Посты на стене
+  wallPosts      Post[]  @relation("WallPosts")
+  
+  @@index([email])
 }
 
 model RefreshToken {
@@ -76,4 +97,81 @@ model LinkAnalytic {
 
   @@index([linkId])
   @@index([timestamp])
+}
+
+// ====== SOCIAL NETWORK ======
+
+// Friend relationship between users
+model Friend {
+  id        String   @id @default(cuid())
+  userId    String
+  friendId  String
+  
+  user      User     @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  friend    User     @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
+}
+
+// Group/Class model
+model Group {
+  id        String   @id @default(cuid())
+  name      String   // CR-211
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   GroupMember[]
+  
+  @@unique([name])
+}
+
+// Group membership model
+model GroupMember {
+  id        String   @id @default(cuid())
+  userId    String
+  groupId   String
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  joinedAt  DateTime @default(now())
+  
+  @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+}
+
+// User profile photo model
+model Photo {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  caption   String?
+  isPrimary Boolean  @default(false)
+  
+  user      User     @relation("ProfilePhotos", fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+// User wall post model
+model Post {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  
+  user      User     @relation("WallPosts", fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
 }
