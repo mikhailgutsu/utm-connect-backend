@@ -1,4 +1,3 @@
-// src/types/index.ts
 export interface IUserRepository {
   create(data: CreateUserDTO): Promise<UserEntity>;
   findById(id: string): Promise<UserEntity | null>;
@@ -22,7 +21,6 @@ export interface IPostRepository {
   delete(id: string): Promise<void>;
 }
 
-// Entities
 export interface UserEntity {
   id: string;
   email: string;
@@ -69,7 +67,6 @@ export interface RefreshTokenEntity {
   createdAt: Date;
 }
 
-// DTOs
 export interface CreateUserDTO {
   email: string;
   name: string;
@@ -90,7 +87,6 @@ export interface CreatePostDTO {
   comments?: any;
 }
 
-// Auth DTOs
 export interface LoginDTO {
   email: string;
   password: string;
@@ -104,7 +100,6 @@ export interface RegisterDTO {
   passwordConfirm: string;
   role?: number;
   universityGroup?: string;
-  // alias для удобства фронта
   group?: string;
 }
 
