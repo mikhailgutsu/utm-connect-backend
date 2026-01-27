@@ -1,11 +1,10 @@
-// src/services/TokenService.ts
 import jwt from 'jsonwebtoken';
 import { config } from '@/config/env';
 import type { TokenPayload } from '@/types';
 
 export class TokenService {
   /**
-   * Создаёт Access Token (короткоживущий)
+   * Create Access Token (short-lived)
    */
   createAccessToken(userId: string, email: string): string {
     const payload = {
@@ -13,14 +12,18 @@ export class TokenService {
       email,
     };
 
-    return jwt.sign(payload, config.jwtSecret as string, {
-      expiresIn: config.jwtAccessExpiry,
-      issuer: 'utm-connect',
-    } as any);
+    return jwt.sign(
+      payload,
+      config.jwtSecret as string,
+      {
+        expiresIn: config.jwtAccessExpiry,
+        issuer: 'utm-connect',
+      } as any
+    );
   }
 
   /**
-   * Создаёт Refresh Token (долгоживущий)
+   * Create Refresh Token (long-lived)
    */
   createRefreshToken(userId: string): string {
     const payload = {
@@ -28,14 +31,18 @@ export class TokenService {
       type: 'refresh',
     };
 
-    return jwt.sign(payload, config.jwtRefreshSecret as string, {
-      expiresIn: config.jwtRefreshExpiry,
-      issuer: 'utm-connect',
-    } as any);
+    return jwt.sign(
+      payload,
+      config.jwtRefreshSecret as string,
+      {
+        expiresIn: config.jwtRefreshExpiry,
+        issuer: 'utm-connect',
+      } as any
+    );
   }
 
   /**
-   * Верифицирует и декодирует Access Token
+   * Verify and decode Access Token
    */
   verifyAccessToken(token: string): TokenPayload | null {
     try {
@@ -47,7 +54,7 @@ export class TokenService {
   }
 
   /**
-   * Верифицирует и декодирует Refresh Token
+   * Verify and decode Refresh Token
    */
   verifyRefreshToken(token: string): { userId: string; type: string } | null {
     try {
@@ -62,7 +69,7 @@ export class TokenService {
   }
 
   /**
-   * Декодирует токен БЕЗ проверки подписи (для отладки)
+   * Decode token WITHOUT signature verification (for debugging)
    */
   decodeToken(token: string): any {
     return jwt.decode(token);

@@ -1,4 +1,3 @@
-// src/services/UserService.ts
 import type { IUserRepository, UserEntity, CreateUserDTO } from '@/types';
 
 export interface UserInfoDTO {

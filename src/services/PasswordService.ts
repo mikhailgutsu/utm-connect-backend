@@ -1,32 +1,31 @@
-// src/services/PasswordService.ts
 import bcrypt from 'bcrypt';
 import { config } from '@/config/env';
 
 export class PasswordService {
   /**
-   * Хеширует пароль с использованием bcrypt
-   * @param password - открытый пароль
-   * @returns хеш пароля
+   * Hash password using bcrypt
+   * @param password - plain password
+   * @returns password hash
    */
   async hashPassword(password: string): Promise<string> {
-    const saltRounds = 10; // количество раундов (выше = безопаснее, но медленнее)
+    const saltRounds = 10; // number of rounds (higher = more secure, but slower)
     return bcrypt.hash(password, saltRounds);
   }
 
   /**
-   * Проверяет пароль против хеша
-   * @param password - открытый пароль
-   * @param hash - хеш пароля
-   * @returns true если пароль совпадает
+   * Verify password against hash
+   * @param password - plain password
+   * @param hash - password hash
+   * @returns true if password matches
    */
   async verifyPassword(password: string, hash: string): Promise<boolean> {
     return bcrypt.compare(password, hash);
   }
 
   /**
-   * Валидирует требования к паролю
-   * @param password - пароль для проверки
-   * @returns объект с результатом и ошибками
+   * Validate password requirements
+   * @param password - password to check
+   * @returns object with result and errors
    */
   validatePassword(password: string): {
     isValid: boolean;
@@ -34,22 +33,22 @@ export class PasswordService {
   } {
     const errors: string[] = [];
 
-    // Минимальная длина
+    // Minimum length
     if (password.length < config.passwordMinLength) {
       errors.push(`Password must be at least ${config.passwordMinLength} characters long`);
     }
 
-    // Заглавные буквы
+    // Uppercase letters
     if (config.passwordRequireUppercase && !/[A-Z]/.test(password)) {
       errors.push('Password must contain at least one uppercase letter');
     }
 
-    // Цифры
+    // Numbers
     if (config.passwordRequireNumber && !/[0-9]/.test(password)) {
       errors.push('Password must contain at least one number');
     }
 
-    // Специальные символы
+    // Special characters
     if (config.passwordRequireSpecial && !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
       errors.push('Password must contain at least one special character (!@#$%^&*...)');
     }
