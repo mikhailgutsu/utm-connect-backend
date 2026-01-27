@@ -128,4 +128,58 @@ router.post('/accept', authenticate, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/friends/remove
+ * Удалить из друзей
+ */
+router.post('/remove', authenticate, async (req, res) => {
+  try {
+    const currentUser = getCurrentUser(req);
+    const { friendId } = z.object({
+      friendId: z.string().min(1, 'Friend ID is required'),
+    }).parse(req.body);
+
+    // Проверяем что не пытаемся удалить самого себя
+    if (currentUser.userId === friendId) {
+      res.status(400).json({ error: 'Cannot remove yourself' });
+      return;
+    }
+
+    // Получаем обоих пользователей
+    const [me, friend] = await Promise.all([
+      userRepository.findById(currentUser.userId),
+      userRepository.findById(friendId),
+    ]);
+
+    if (!me || !friend) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Проверяем что действительно друзья
+    if (!me.friends.includes(friendId)) {
+      res.status(400).json({ error: 'Not friends' });
+      return;
+    }
+
+    // Удаляем друг друга из массивов друзей
+    await Promise.all([
+      userRepository.update(currentUser.userId, {
+        friends: me.friends.filter(id => id !== friendId),
+      }),
+      userRepository.update(friendId, {
+        friends: friend.friends.filter(id => id !== currentUser.userId),
+      }),
+    ]);
+
+    res.status(200).json({ message: 'Friend removed successfully' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: error.errors[0].message });
+    } else {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+});
+
 export default router;
