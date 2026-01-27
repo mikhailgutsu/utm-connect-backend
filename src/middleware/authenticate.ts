@@ -1,4 +1,3 @@
-// src/middleware/authenticate.ts
 import express from 'express';
 import { TokenService } from '@/services';
 import type { TokenPayload } from '@/types';
@@ -6,9 +5,9 @@ import type { TokenPayload } from '@/types';
 const tokenService = new TokenService();
 
 /**
- * Middleware для проверки JWT токена в Authorization заголовке
- * 
- * Использование:
+ * Middleware for verifying JWT token in the Authorization header
+ *
+ * Usage:
  * app.get('/api/protected', authenticate, (req, res) => { ... })
  */
 export const authenticate = (
@@ -17,14 +16,14 @@ export const authenticate = (
   next: express.NextFunction
 ): void => {
   try {
-    // 1. Получаем Authorization заголовок
+    // 1. Get the Authorization header
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
       res.status(401).json({ error: 'No authorization header provided' });
       return;
     }
 
-    // 2. Извлекаем токен из "Bearer TOKEN"
+    // 2. Extract the token from "Bearer TOKEN"
     const parts = authHeader.split(' ');
     if (parts.length !== 2 || parts[0] !== 'Bearer') {
       res.status(401).json({ error: 'Invalid authorization header format' });
@@ -33,14 +32,14 @@ export const authenticate = (
 
     const token = parts[1];
 
-    // 3. Верифицируем токен
+    // 3. Verify the token
     const decoded = tokenService.verifyAccessToken(token);
     if (!decoded) {
       res.status(403).json({ error: 'Invalid or expired token' });
       return;
     }
 
-    // 4. Прикрепляем информацию о пользователе к request
+    // 4. Attach user information to the request
     (req as any).user = decoded;
 
     next();
@@ -50,7 +49,7 @@ export const authenticate = (
 };
 
 /**
- * Получить текущего пользователя из request
+ * Get the current user from the request
  */
 export const getCurrentUser = (req: express.Request): TokenPayload => {
   return (req as any).user;
