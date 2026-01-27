@@ -1,4 +1,3 @@
-// src/index.ts
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -17,12 +16,14 @@ const app = express();
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: config.corsOrigin,
-  credentials: true, // Разрешить отправку cookies
-}));
+app.use(
+  cors({
+    origin: config.corsOrigin,
+    credentials: true, // Allow cookies
+  })
+);
 app.use(express.json());
-app.use(cookieParser()); // Для работы с HttpOnly cookies
+app.use(cookieParser()); // Allow HttpOnly cookies
 
 // Health check
 app.get('/health', (_req, res) => {
