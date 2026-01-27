@@ -101,6 +101,8 @@ export interface RegisterDTO {
   passwordConfirm: string;
   role?: number;
   universityGroup?: string;
+  // alias для удобства фронта
+  group?: string;
 }
 
 export interface AuthResponse {

@@ -48,7 +48,8 @@ export class AuthService {
         name: data.name,
         password: hashedPassword,
         phoneNumber: data.phoneNumber || null,
-        universityGroup: data.universityGroup || null,
+        // поддерживаем оба поля: universityGroup и alias group
+        universityGroup: data.universityGroup || data.group || null,
         role: data.role !== undefined ? data.role : 0,
         friends: null,
         groupIds: [],
