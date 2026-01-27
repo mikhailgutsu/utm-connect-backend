@@ -1,14 +1,18 @@
-import type { IPostRepository, PostEntity } from '@/types';
-import type { CreatePostDTO } from '@/repositories/PostRepository';
+import { prisma } from '@/prisma/client';
+import { PostRepository } from '@/repositories/PostRepository';
 
 export class PostService {
-  constructor(private postRepository: IPostRepository) {}
+  constructor(private postRepository: PostRepository) {}
 
-  async createPost(data: CreatePostDTO): Promise<PostEntity> {
-    return this.postRepository.create(data);
+  async createPost(userId: string, description: string, photoUrls: string[] = []) {
+    return this.postRepository.create({
+      userId,
+      description,
+      photoUrls,
+    });
   }
 
-  async getPostById(id: string): Promise<PostEntity> {
+  async getPostById(id: string) {
     const post = await this.postRepository.findById(id);
     if (!post) {
       throw new Error('Post not found');
@@ -16,57 +20,27 @@ export class PostService {
     return post;
   }
 
-  async addLike(postId: string, userId: string): Promise<PostEntity> {
-    const post = await this.postRepository.findById(postId);
-    if (!post) {
-      throw new Error('Post not found');
-    }
-
-    const updatedLikes = Array.isArray(post.likes) ? post.likes : [];
-    if (!updatedLikes.includes(userId)) {
-      updatedLikes.push(userId);
-    }
-
-    return this.postRepository.update(postId, { likes: updatedLikes });
-  }
-
-  async removeLike(postId: string, userId: string): Promise<PostEntity> {
-    const post = await this.postRepository.findById(postId);
-    if (!post) {
-      throw new Error('Post not found');
-    }
-
-    const updatedLikes = (post.likes || []).filter(id => id !== userId);
-    return this.postRepository.update(postId, { likes: updatedLikes });
-  }
-
-  async addComment(
-    postId: string,
-    userId: string,
-    userName: string,
-    content: string
-  ): Promise<PostEntity> {
-    const post = await this.postRepository.findById(postId);
-    if (!post) {
-      throw new Error('Post not found');
-    }
-
-    const comments = Array.isArray(post.comments) ? post.comments : [];
-    comments.push({
-      userId,
-      userName,
-      content,
-      createdAt: new Date(),
+  async getAllPosts(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    const posts = await prisma.post.findMany({
+      skip,
+      take: limit,
+      include: { comments: true },
+      orderBy: { createdAt: 'desc' },
     });
-
-    return this.postRepository.update(postId, { comments });
+    const total = await prisma.post.count();
+    return { posts, total, page, limit };
   }
 
-  async updatePost(id: string, data: Partial<PostEntity>): Promise<PostEntity> {
-    return this.postRepository.update(id, data);
+  async updatePost(id: string, description: string, photoUrls: string[]) {
+    return this.postRepository.update(id, {
+      description,
+      photoUrls,
+    });
   }
 
   async deletePost(id: string): Promise<void> {
     await this.postRepository.delete(id);
   }
 }
+

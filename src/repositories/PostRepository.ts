@@ -1,33 +1,36 @@
 import { prisma } from '@/prisma/client';
-import type { IPostRepository, PostEntity } from '@/types';
 
 export interface CreatePostDTO {
-  imageUrls?: string[];
-  likes?: string[];
-  comments?: any;
+  userId: string;
+  description: string;
+  photoUrls?: string[];
 }
 
-export class PostRepository implements IPostRepository {
-  async create(data: CreatePostDTO): Promise<PostEntity> {
+export class PostRepository {
+  async create(data: CreatePostDTO) {
     return prisma.post.create({
       data: {
-        imageUrls: data.imageUrls || [],
-        likes: data.likes || [],
-        comments: data.comments || {},
+        userId: data.userId,
+        description: data.description,
+        photoUrls: data.photoUrls || [],
+        likes: [],
       },
+      include: { comments: true },
     });
   }
 
-  async findById(id: string): Promise<PostEntity | null> {
+  async findById(id: string) {
     return prisma.post.findUnique({
       where: { id },
+      include: { comments: true },
     });
   }
 
-  async update(id: string, data: Partial<PostEntity>): Promise<PostEntity> {
+  async update(id: string, data: any) {
     return prisma.post.update({
       where: { id },
       data,
+      include: { comments: true },
     });
   }
 

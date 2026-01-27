@@ -45,12 +45,28 @@ model Group {
 }
 
 model Post {
+  id          String   @id @default(cuid())
+  userId      String
+  description String
+  photoUrls   String[]
+  likes       String[]
+  comments    Comment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Comment {
   id        String   @id @default(cuid())
-  imageUrls String[]
-  likes     String[]
-  comments  Json
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  text      String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([userId])
 }
 
 model RefreshToken {
