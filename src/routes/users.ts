@@ -34,6 +34,20 @@ router.post('/', async (req, res) => {
 });
 
 /**
+ * GET /api/users
+ * Получить список всех пользователей (пароль не возвращаем)
+ */
+router.get('/', async (_req, res) => {
+  try {
+    const users = await userService.getAllUsers();
+    const safeUsers = users.map(({ password, ...rest }) => rest);
+    res.json(safeUsers);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+/**
  * GET /api/users/:id
  * Получить пользователя по ID
  */

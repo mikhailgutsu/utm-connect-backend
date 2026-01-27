@@ -21,6 +21,10 @@ export class UserRepository implements IUserRepository {
     });
   }
 
+  async findAll(): Promise<UserEntity[]> {
+    return prisma.user.findMany();
+  }
+
   async update(id: string, data: Partial<UserEntity>): Promise<UserEntity> {
     return prisma.user.update({
       where: { id },

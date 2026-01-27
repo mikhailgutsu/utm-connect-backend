@@ -3,6 +3,7 @@ export interface IUserRepository {
   create(data: CreateUserDTO): Promise<UserEntity>;
   findById(id: string): Promise<UserEntity | null>;
   findByEmail(email: string): Promise<UserEntity | null>;
+  findAll(): Promise<UserEntity[]>;
   update(id: string, data: Partial<UserEntity>): Promise<UserEntity>;
   delete(id: string): Promise<void>;
 }

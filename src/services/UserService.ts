@@ -45,6 +45,10 @@ export class UserService {
     return user;
   }
 
+  async getAllUsers(): Promise<UserEntity[]> {
+    return this.userRepository.findAll();
+  }
+
   async getUserInfo(userId: string): Promise<UserInfoDTO> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
