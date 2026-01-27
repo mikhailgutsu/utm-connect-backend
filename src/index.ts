@@ -8,8 +8,8 @@ import { config } from '@/config/env';
 // Routes
 import authRouter from '@/routes/auth';
 import usersRouter from '@/routes/users';
-import linksRouter from '@/routes/links';
-import campaignsRouter from '@/routes/campaigns';
+import groupsRouter from '@/routes/groups';
+import postsRouter from '@/routes/posts';
 
 const app = express();
 
@@ -30,8 +30,8 @@ app.get('/health', (_req, res) => {
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
-app.use('/api/links', linksRouter);
-app.use('/api/campaigns', campaignsRouter);
+app.use('/api/groups', groupsRouter);
+app.use('/api/posts', postsRouter);
 
 // 404 handler
 app.use((_req, res) => {

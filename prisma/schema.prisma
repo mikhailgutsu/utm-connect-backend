@@ -8,40 +8,55 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  phoneNumber String?
-  
-  role      Int      @default(0)
-  group     String?
-  
+  id       String @id @default(cuid())
+  email    String @unique
+  name     String
+  password String
+
+  phoneNumber     String?
+  universityGroup String?
+  role            Int     @default(0)
+
+  friends  String?
+  groupIds String[]
+  postIds  String[]
+
+  photoUrl        String?
+  primaryPhotoUrl String?
+
+  joinedAt  DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  campaigns      Campaign[]
-  links          Link[]
-  refreshTokens  RefreshToken[]
-  
-  friendOf       Friend[]  @relation("UserFriends")
-  friends        Friend[]  @relation("FriendOf")
-  
-  groupMemberships GroupMember[]
-  
-  profilePhotos  Photo[] @relation("ProfilePhotos")
-  
-  wallPosts      Post[]  @relation("WallPosts")
-  
+  refreshTokens RefreshToken[]
+  analytics     LinkAnalytic[]
+
   @@index([email])
 }
 
-model RefreshToken {
+model Group {
   id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  name      String
+  userIds   String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  imageUrls String[]
+  likes     String[]
+  comments  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RefreshToken {
+  id     String @id @default(cuid())
+  token  String @unique
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   expiresAt DateTime
   isRevoked Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -49,117 +64,17 @@ model RefreshToken {
   @@index([userId])
 }
 
-model Campaign {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  links Link[]
-
-  @@index([userId])
-}
-
-model Link {
-  id          String   @id @default(cuid())
-  originalUrl String
-  shortCode   String   @unique
-  campaignId  String?
-  campaign    Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  clicks      Int      @default(0)
-
-  analytics LinkAnalytic[]
-
-  @@index([userId])
-  @@index([campaignId])
-  @@index([shortCode])
-}
-
 model LinkAnalytic {
   id        String   @id @default(cuid())
   linkId    String
-  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userAgent String?
   referer   String?
   ipAddress String?
   timestamp DateTime @default(now())
 
   @@index([linkId])
+  @@index([userId])
   @@index([timestamp])
-}
-
-model Friend {
-  id        String   @id @default(cuid())
-  userId    String
-  friendId  String
-  
-  user      User     @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
-  friend    User     @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  
-  @@unique([userId, friendId])
-  @@index([userId])
-  @@index([friendId])
-}
-
-model Group {
-  id        String   @id @default(cuid())
-  name      String
-  description String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  members   GroupMember[]
-  
-  @@unique([name])
-}
-
-model GroupMember {
-  id        String   @id @default(cuid())
-  userId    String
-  groupId   String
-  
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  
-  joinedAt  DateTime @default(now())
-  
-  @@unique([userId, groupId])
-  @@index([userId])
-  @@index([groupId])
-}
-
-model Photo {
-  id        String   @id @default(cuid())
-  userId    String
-  url       String
-  caption   String?
-  isPrimary Boolean  @default(false)
-  
-  user      User     @relation("ProfilePhotos", fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  userId    String
-  content   String
-  
-  user      User     @relation("WallPosts", fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
 }

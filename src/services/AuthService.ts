@@ -48,8 +48,13 @@ export class AuthService {
         name: data.name,
         password: hashedPassword,
         phoneNumber: data.phoneNumber || null,
+        universityGroup: data.universityGroup || null,
         role: data.role !== undefined ? data.role : 0,
-        group: data.group || null,
+        friends: null,
+        groupIds: [],
+        postIds: [],
+        photoUrl: null,
+        primaryPhotoUrl: null,
       },
     });
 

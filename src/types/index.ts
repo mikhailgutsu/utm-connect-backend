@@ -7,20 +7,17 @@ export interface IUserRepository {
   delete(id: string): Promise<void>;
 }
 
-export interface ICampaignRepository {
-  create(data: CreateCampaignDTO): Promise<CampaignEntity>;
-  findById(id: string): Promise<CampaignEntity | null>;
-  findByUserId(userId: string): Promise<CampaignEntity[]>;
-  update(id: string, data: Partial<CampaignEntity>): Promise<CampaignEntity>;
+export interface IGroupRepository {
+  create(data: CreateGroupDTO): Promise<GroupEntity>;
+  findById(id: string): Promise<GroupEntity | null>;
+  update(id: string, data: Partial<GroupEntity>): Promise<GroupEntity>;
   delete(id: string): Promise<void>;
 }
 
-export interface ILinkRepository {
-  create(data: CreateLinkDTO): Promise<LinkEntity>;
-  findById(id: string): Promise<LinkEntity | null>;
-  findByShortCode(shortCode: string): Promise<LinkEntity | null>;
-  findByUserId(userId: string): Promise<LinkEntity[]>;
-  incrementClicks(id: string): Promise<void>;
+export interface IPostRepository {
+  create(data: CreatePostDTO): Promise<PostEntity>;
+  findById(id: string): Promise<PostEntity | null>;
+  update(id: string, data: Partial<PostEntity>): Promise<PostEntity>;
   delete(id: string): Promise<void>;
 }
 
@@ -30,6 +27,32 @@ export interface UserEntity {
   email: string;
   name: string;
   password: string;
+  phoneNumber: string | null;
+  universityGroup: string | null;
+  role: number;
+  friends: string | null;
+  groupIds: string[];
+  postIds: string[];
+  photoUrl: string | null;
+  primaryPhotoUrl: string | null;
+  joinedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GroupEntity {
+  id: string;
+  name: string;
+  userIds: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PostEntity {
+  id: string;
+  imageUrls: string[];
+  likes: string[];
+  comments: any;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,43 +66,25 @@ export interface RefreshTokenEntity {
   createdAt: Date;
 }
 
-export interface CampaignEntity {
-  id: string;
-  name: string;
-  description: string | null;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface LinkEntity {
-  id: string;
-  originalUrl: string;
-  shortCode: string;
-  campaignId: string | null;
-  userId: string;
-  createdAt: Date;
-  clicks: number;
-}
-
 // DTOs
 export interface CreateUserDTO {
   email: string;
   name: string;
   password: string;
+  phoneNumber?: string;
+  universityGroup?: string;
+  role?: number;
 }
 
-export interface CreateCampaignDTO {
+export interface CreateGroupDTO {
   name: string;
-  description?: string;
-  userId: string;
+  userIds?: string[];
 }
 
-export interface CreateLinkDTO {
-  originalUrl: string;
-  shortCode: string;
-  campaignId?: string;
-  userId: string;
+export interface CreatePostDTO {
+  imageUrls?: string[];
+  likes?: string[];
+  comments?: any;
 }
 
 // Auth DTOs
@@ -94,8 +99,8 @@ export interface RegisterDTO {
   phoneNumber?: string;
   password: string;
   passwordConfirm: string;
-  role?: number;        // 0 = Студент, 1 = Профессор, 2 = Админ
-  group?: string;       // CR-211 (только для студентов)
+  role?: number;
+  universityGroup?: string;
 }
 
 export interface AuthResponse {
