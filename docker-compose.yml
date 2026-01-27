@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # PostgreSQL База данных
+  # PostgreSQL
   postgres:
     image: postgres:16-alpine
     container_name: utm_connect_db
@@ -12,7 +12,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      # Сохранение данных между перезагрузками
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
@@ -22,7 +21,7 @@ services:
     networks:
       - utm_network
 
-  # PgAdmin - Web UI для управления БД
+  # PgAdmin - Web UI 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: utm_connect_pgadmin
@@ -38,29 +37,6 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     networks:
       - utm_network
-
-  # Node.js приложение (опционально для локальной разработки)
-  # Раскомментируй если хочешь запускать приложение в контейнере
-  # app:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: utm_connect_app
-  #   environment:
-  #     DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-utm_connect}
-  #     NODE_ENV: development
-  #     PORT: 3000
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   volumes:
-  #     - .:/app
-  #     - /app/node_modules
-  #   networks:
-  #     - utm_network
-  #   command: npm run dev
 
 volumes:
   postgres_data:
