@@ -54,7 +54,8 @@ router.get('/', async (_req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const user = await userService.getUserById(req.params.id);
-    res.json(user);
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
   } catch (error) {
     res.status(404).json({ error: (error as Error).message });
   }
