@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import { config } from '@/config/env';
 
 // Routes
@@ -25,7 +26,9 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser()); // Allow HttpOnly cookies
-app.use(express.static('uploads')); // Serve uploaded files
+
+// Serve uploaded files with proper CORS
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Health check
 app.get('/health', (_req, res) => {
