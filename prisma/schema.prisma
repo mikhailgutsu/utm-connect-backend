@@ -22,8 +22,8 @@ model User {
   friendRequestsReceived String[]
   groupIds              String[]
   postIds               String[]
+  photoUrl              String[]
 
-  photoUrl        String?
   primaryPhotoUrl String?
 
   joinedAt  DateTime @default(now())

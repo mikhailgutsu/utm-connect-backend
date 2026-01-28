@@ -55,7 +55,7 @@ export class AuthService {
         friendRequestsReceived: [],
         groupIds: [],
         postIds: [],
-        photoUrl: null,
+        photoUrl: [],
         primaryPhotoUrl: null,
       },
     });
