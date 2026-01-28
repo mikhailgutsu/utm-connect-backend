@@ -246,4 +246,39 @@ uploadsRouter.get('/gallery/:userId', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/uploads/avatar/:userId
+ * Get user's avatar URL (primary photo)
+ */
+uploadsRouter.get('/avatar/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        primaryPhotoUrl: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.status(200).json({
+      user: {
+        id: user.id,
+        name: user.name,
+        avatar: user.primaryPhotoUrl,
+        hasAvatar: !!user.primaryPhotoUrl,
+      },
+    });
+  } catch (error) {
+    console.error('Avatar fetch error:', error);
+    return res.status(500).json({ error: 'Failed to fetch avatar' });
+  }
+});
+
 export default uploadsRouter;
