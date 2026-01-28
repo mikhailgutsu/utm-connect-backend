@@ -12,129 +12,139 @@ const fileService = new FileService();
  * POST /api/uploads/avatar
  * Upload and set as profile picture (primary photo)
  */
-uploadsRouter.post('/avatar', authenticate, upload.single('file'), async (req: Request, res: Response) => {
-  try {
-    const userPayload = getCurrentUser(req);
-    const userId = userPayload?.userId;
-    
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+uploadsRouter.post(
+  '/avatar',
+  authenticate,
+  upload.single('file'),
+  async (req: Request, res: Response) => {
+    try {
+      const userPayload = getCurrentUser(req);
+      const userId = userPayload?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file provided' });
+      }
+
+      // Save file
+      const uploadedFile = fileService.saveFile(req.file);
+
+      // Get current user
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Update user: add to photoUrl[] and set as primaryPhotoUrl
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          photoUrl: [...(user.photoUrl || []), uploadedFile.url],
+          primaryPhotoUrl: uploadedFile.url,
+        },
+      });
+
+      return res.status(201).json({
+        message: 'Avatar uploaded successfully',
+        data: {
+          filename: uploadedFile.filename,
+          url: uploadedFile.url,
+          primaryPhotoUrl: updatedUser.primaryPhotoUrl,
+          allPhotos: updatedUser.photoUrl,
+        },
+      });
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      return res.status(400).json({ error: (error as Error).message || 'Upload failed' });
     }
-
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file provided' });
-    }
-
-    // Save file
-    const uploadedFile = fileService.saveFile(req.file);
-
-    // Get current user
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Update user: add to photoUrl[] and set as primaryPhotoUrl
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        photoUrl: [...(user.photoUrl || []), uploadedFile.url],
-        primaryPhotoUrl: uploadedFile.url,
-      },
-    });
-
-    return res.status(201).json({
-      message: 'Avatar uploaded successfully',
-      data: {
-        filename: uploadedFile.filename,
-        url: uploadedFile.url,
-        primaryPhotoUrl: updatedUser.primaryPhotoUrl,
-        allPhotos: updatedUser.photoUrl,
-      },
-    });
-  } catch (error) {
-    console.error('Avatar upload error:', error);
-    return res.status(400).json({ error: (error as Error).message || 'Upload failed' });
   }
-});
+);
 
 /**
  * POST /api/uploads/post/:postId
  * Upload image for post and add to user's photo gallery
  */
-uploadsRouter.post('/post/:postId', authenticate, upload.single('file'), async (req: Request, res: Response) => {
-  try {
-    const userPayload = getCurrentUser(req);
-    const userId = userPayload?.userId;
-    
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+uploadsRouter.post(
+  '/post/:postId',
+  authenticate,
+  upload.single('file'),
+  async (req: Request, res: Response) => {
+    try {
+      const userPayload = getCurrentUser(req);
+      const userId = userPayload?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { postId } = req.params;
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file provided' });
+      }
+
+      // Check if post exists and belongs to user
+      const post = await prisma.post.findUnique({
+        where: { id: postId },
+      });
+
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+
+      if (post.userId !== userId) {
+        return res.status(403).json({ error: 'Cannot add images to posts of other users' });
+      }
+
+      // Save file
+      const uploadedFile = fileService.saveFile(req.file);
+
+      // Get current user
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Update post: add to photoUrls[]
+      const updatedPost = await prisma.post.update({
+        where: { id: postId },
+        data: {
+          photoUrls: [...post.photoUrls, uploadedFile.url],
+        },
+      });
+
+      // Update user: add to photoUrl[]
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          photoUrl: [...(user.photoUrl || []), uploadedFile.url],
+        },
+      });
+
+      return res.status(201).json({
+        message: 'Image added to post successfully',
+        data: {
+          filename: uploadedFile.filename,
+          url: uploadedFile.url,
+          postPhotos: updatedPost.photoUrls,
+          userPhotos: updatedUser.photoUrl,
+        },
+      });
+    } catch (error) {
+      console.error('Post image upload error:', error);
+      return res.status(400).json({ error: (error as Error).message || 'Upload failed' });
     }
-
-    const { postId } = req.params;
-
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file provided' });
-    }
-
-    // Check if post exists and belongs to user
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-    });
-
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    if (post.userId !== userId) {
-      return res.status(403).json({ error: 'Cannot add images to posts of other users' });
-    }
-
-    // Save file
-    const uploadedFile = fileService.saveFile(req.file);
-
-    // Get current user
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Update post: add to photoUrls[]
-    const updatedPost = await prisma.post.update({
-      where: { id: postId },
-      data: {
-        photoUrls: [...post.photoUrls, uploadedFile.url],
-      },
-    });
-
-    // Update user: add to photoUrl[]
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        photoUrl: [...(user.photoUrl || []), uploadedFile.url],
-      },
-    });
-
-    return res.status(201).json({
-      message: 'Image added to post successfully',
-      data: {
-        filename: uploadedFile.filename,
-        url: uploadedFile.url,
-        postPhotos: updatedPost.photoUrls,
-        userPhotos: updatedUser.photoUrl,
-      },
-    });
-  } catch (error) {
-    console.error('Post image upload error:', error);
-    return res.status(400).json({ error: (error as Error).message || 'Upload failed' });
   }
-});
+);
 
 /**
  * DELETE /api/uploads/:fileUrl
@@ -144,7 +154,7 @@ uploadsRouter.delete('/:fileUrl', authenticate, async (req: Request, res: Respon
   try {
     const userPayload = getCurrentUser(req);
     const userId = userPayload?.userId;
-    
+
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -173,7 +183,7 @@ uploadsRouter.delete('/:fileUrl', authenticate, async (req: Request, res: Respon
     fileService.deleteFile(decodedUrl);
 
     // Update user: remove from photoUrl[]
-    const updatedPhotoUrl = (user.photoUrl || []).filter(url => url !== fullUrl);
+    const updatedPhotoUrl = (user.photoUrl || []).filter((url) => url !== fullUrl);
     const newPrimaryPhoto = updatedPhotoUrl.length > 0 ? updatedPhotoUrl[0] : null;
 
     const updatedUser = await prisma.user.update({
