@@ -11,6 +11,7 @@ import groupsRouter from '@/routes/groups';
 import postsRouter from '@/routes/posts';
 import friendsRouter from '@/routes/friends';
 import messagesRouter from '@/routes/messages';
+import uploadsRouter from '@/routes/uploads';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser()); // Allow HttpOnly cookies
+app.use(express.static('uploads')); // Serve uploaded files
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -37,6 +39,7 @@ app.use('/api/groups', groupsRouter);
 app.use('/api/posts', postsRouter);
 app.use('/api/friends', friendsRouter);
 app.use('/api/messages', messagesRouter);
+app.use('/api/uploads', uploadsRouter);
 
 // 404 handler
 app.use((_req, res) => {
